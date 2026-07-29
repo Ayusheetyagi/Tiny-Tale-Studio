@@ -1,0 +1,50 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    @apply scroll-smooth;
+  }
+
+  body {
+    @apply bg-paper bg-paper-texture text-ink font-body antialiased;
+    background-attachment: fixed;
+  }
+
+  h1, h2, h3, h4 {
+    @apply font-display;
+  }
+}
+
+@layer utilities {
+  .paper-card {
+    @apply bg-white/70 backdrop-blur-sm border border-amber-soft/40 shadow-card;
+  }
+}
+
+@layer components {
+  .input-field {
+    @apply w-full rounded-xl border border-amber-soft/60 bg-white/80 px-4 py-3 text-ink placeholder:text-ink-faint transition-colors focus:border-terracotta focus:outline-none focus:ring-2 focus:ring-terracotta/30;
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -400px 0;
+  }
+  100% {
+    background-position: 400px 0;
+  }
+}
+
+.skeleton-shimmer {
+  background: linear-gradient(
+    90deg,
+    theme("colors.paper.deep") 0%,
+    theme("colors.amber.soft") 50%,
+    theme("colors.paper.deep") 100%
+  );
+  background-size: 800px 100%;
+  animation: shimmer 1.6s infinite linear;
+}
