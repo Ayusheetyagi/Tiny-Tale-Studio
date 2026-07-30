@@ -2,6 +2,7 @@ import { Router } from "express";
 import rateLimit from "express-rate-limit";
 import type { AdditionalPerson, GenerateStoryRequestBody } from "../types.js";
 import { generateStory, isRetryableError } from "../services/gemini.js";
+import { findBlockedTerm } from "../services/inputFilter.js";
 
 export const generateStoryRouter = Router();
 
@@ -29,6 +30,24 @@ function totalFreeTextLength(profile: GenerateStoryRequestBody["profile"]): numb
   );
 }
 
+function findBlockedInputTerm(profile: GenerateStoryRequestBody["profile"]): string | null {
+  const people = (profile.additionalPeople ?? []) as AdditionalPerson[];
+  const fields = [
+    profile.name,
+    profile.hobbies,
+    profile.petName,
+    profile.milestone,
+    profile.classNotes,
+    ...people.flatMap((person) => [person.name, person.trait]),
+  ];
+
+  for (const field of fields) {
+    const match = field ? findBlockedTerm(field) : null;
+    if (match) return match;
+  }
+  return null;
+}
+
 generateStoryRouter.post("/generate-story", generateStoryLimiter, async (req, res) => {
   const body = req.body as Partial<GenerateStoryRequestBody>;
   const profile = body.profile;
@@ -42,6 +61,13 @@ generateStoryRouter.post("/generate-story", generateStoryLimiter, async (req, re
 
   if (totalFreeTextLength(profile) > MAX_FREE_TEXT_TOTAL_LENGTH) {
     res.status(400).json({ error: "That's a lot of detail — please shorten some of the free-text fields." });
+    return;
+  }
+
+  if (findBlockedInputTerm(profile)) {
+    res.status(400).json({
+      error: "One of the fields contains something that isn't appropriate for a children's storybook. Please edit it and try again.",
+    });
     return;
   }
 

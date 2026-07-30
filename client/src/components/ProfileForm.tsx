@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import type { AdditionalPerson, ChildProfile, StoryCharacter } from "../types/story";
 import { MILESTONE_PRESETS, THEME_PRESETS } from "../types/story";
 import AdditionalPeopleField from "./AdditionalPeopleField";
+import { findBlockedTerm } from "../utils/inputFilter";
 
 interface ProfileFormProps {
   onSubmit: (profile: ChildProfile) => void;
@@ -29,6 +30,7 @@ export default function ProfileForm({ onSubmit, isSubmitting }: ProfileFormProps
   const [milestoneSelection, setMilestoneSelection] = useState<string>(NO_MILESTONE);
   const [customMilestone, setCustomMilestone] = useState("");
   const [characters, setCharacters] = useState<StoryCharacter[]>([]);
+  const [validationError, setValidationError] = useState("");
 
   useEffect(() => {
     let cancelled = false;
@@ -60,6 +62,23 @@ export default function ProfileForm({ onSubmit, isSubmitting }: ProfileFormProps
           ? customMilestone.trim()
           : milestoneSelection;
 
+    const fieldsToCheck = [
+      profile.name,
+      profile.hobbies,
+      profile.petName,
+      milestone,
+      profile.classNotes,
+      ...profile.additionalPeople.flatMap((person) => [person.name, person.trait]),
+    ];
+
+    if (fieldsToCheck.some((field) => findBlockedTerm(field))) {
+      setValidationError(
+        "One of the fields contains something that isn't appropriate for a children's storybook. Please edit it and try again."
+      );
+      return;
+    }
+
+    setValidationError("");
     onSubmit({ ...profile, milestone });
   }
 
@@ -212,6 +231,12 @@ export default function ProfileForm({ onSubmit, isSubmitting }: ProfileFormProps
             people={profile.additionalPeople}
             onChange={(additionalPeople: AdditionalPerson[]) => handleChange("additionalPeople", additionalPeople)}
           />
+
+          {validationError && (
+            <p className="rounded-xl border border-terracotta/40 bg-terracotta-soft/40 px-4 py-3 text-sm text-terracotta-deep">
+              {validationError}
+            </p>
+          )}
 
           <motion.button
             type="submit"
