@@ -1,14 +1,15 @@
 import { useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
+import WelcomeScreen from "./components/WelcomeScreen";
 import ProfileForm from "./components/ProfileForm";
 import StoryReader from "./components/StoryReader";
 import type { ChildProfile, StoryResponse } from "./types/story";
 import { preloadAllIllustrations } from "./utils/illustration";
 
-type AppStatus = "form" | "loading" | "illustrating" | "reading" | "error";
+type AppStatus = "welcome" | "form" | "loading" | "illustrating" | "reading" | "error";
 
 export default function App() {
-  const [status, setStatus] = useState<AppStatus>("form");
+  const [status, setStatus] = useState<AppStatus>("welcome");
   const [story, setStory] = useState<StoryResponse | null>(null);
   const [childName, setChildName] = useState("");
   const [childAge, setChildAge] = useState(5);
@@ -72,10 +73,12 @@ export default function App() {
   }
 
   return (
-    <main className="min-h-screen px-4 py-12 sm:px-8 lg:px-16">
+    <main className="min-h-screen">
       <AnimatePresence mode="wait">
+        {status === "welcome" && <WelcomeScreen key="welcome" onGetStarted={() => setStatus("form")} />}
+
         {status === "form" && (
-          <motion.div key="form" exit={{ opacity: 0 }}>
+          <motion.div key="form" exit={{ opacity: 0 }} className="px-4 py-12 sm:px-8 lg:px-16">
             <ProfileForm onSubmit={handleGenerate} isSubmitting={false} />
           </motion.div>
         )}
@@ -86,7 +89,7 @@ export default function App() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="mx-auto flex max-w-2xl flex-col items-center gap-6 py-24 text-center"
+            className="mx-auto flex max-w-2xl flex-col items-center gap-6 px-4 py-24 text-center sm:px-8"
           >
             <span className="h-14 w-14 animate-spin rounded-full border-4 border-amber-soft border-t-terracotta" />
             <h2 className="text-2xl font-semibold text-ink">
@@ -104,7 +107,7 @@ export default function App() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="mx-auto flex max-w-2xl flex-col items-center gap-6 py-24 text-center"
+            className="mx-auto flex max-w-2xl flex-col items-center gap-6 px-4 py-24 text-center sm:px-8"
           >
             <span className="h-14 w-14 animate-spin rounded-full border-4 border-amber-soft border-t-terracotta" />
             <h2 className="text-2xl font-semibold text-ink">
@@ -136,7 +139,13 @@ export default function App() {
         )}
 
         {status === "reading" && story && (
-          <motion.div key="reading" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+          <motion.div
+            key="reading"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="px-4 py-12 sm:px-8 lg:px-16"
+          >
             <StoryReader
               story={story}
               childName={childName}
@@ -153,7 +162,7 @@ export default function App() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="mx-auto flex max-w-xl flex-col items-center gap-4 py-24 text-center"
+            className="mx-auto flex max-w-xl flex-col items-center gap-4 px-4 py-24 text-center sm:px-8"
           >
             <span className="text-4xl">😔</span>
             <h2 className="text-2xl font-semibold text-ink">We couldn't create the story</h2>
